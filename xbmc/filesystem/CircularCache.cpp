@@ -115,6 +115,7 @@ int CCircularCache::WriteToCache(const char *buf, size_t len)
   if(len > wrap)
     len = wrap;
 
+  CLog::Log(LOGERROR,"l=%"PRId64", f=%"PRId64"\n", len, front);
   if(len == 0)
     return 0;
 
