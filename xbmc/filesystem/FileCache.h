@@ -76,6 +76,8 @@ namespace XFILE
     unsigned     m_writeRate;
     unsigned     m_writeRateActual;
     bool         m_cacheFull;
+    bool	 m_prebuffering;
+    bool        m_doneReading;      
     CCriticalSection m_sync;
   };
 
