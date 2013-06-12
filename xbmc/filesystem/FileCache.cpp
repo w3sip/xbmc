@@ -253,7 +253,7 @@ void CFileCache::Process()
     CLog::Log(LOGERROR, "r\n");
     int iRead = m_source.Read(buffer.get(), m_chunkSize);
     unsigned after = XbmcThreads::SystemClockMillis();
-    CLog::Log(LOGERROR, "rtime=%d\n", after-before);
+    CLog::Log(LOGERROR, "rtime=%d,r=%d\n", after-before,iRead);
     if (iRead == 0)
     {
       CLog::Log(LOGINFO, "CFileCache::Process - Hit eof.");
@@ -274,6 +274,8 @@ void CFileCache::Process()
     int iTotalWrite=0;
     while (!m_bStop && (iTotalWrite < iRead))
     {
+      CLog::Log(LOGERROR, "w1, iTotalWrite=%d\n", iTotalWrite);
+      
       int iWrite = 0;
       iWrite = m_pCache->WriteToCache(buffer.get()+iTotalWrite, iRead - iTotalWrite);
 
@@ -296,6 +298,7 @@ void CFileCache::Process()
         m_cacheFull = false;
 
       iTotalWrite += iWrite;
+      CLog::Log(LOGERROR, "w2, iTotalWrite=%d\n", iTotalWrite);
 
       // check if seek was asked. otherwise if cache is full we'll freeze.
       if (m_seekEvent.WaitMSec(0))
@@ -306,11 +309,14 @@ void CFileCache::Process()
     }
 
     m_writePos += iTotalWrite;
+    CLog::Log(LOGERROR, "m_writePos=%d\n", m_writePos);
 
     // under estimate write rate by a second, to
     // avoid uncertainty at start of caching
     m_writeRateActual = average.Rate(m_writePos, 1000);
   }
+  
+  CLog::Log(LOGERROR, "Cache - exited while loop\n");
 }
 
 void CFileCache::OnExit()
