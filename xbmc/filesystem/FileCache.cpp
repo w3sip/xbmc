@@ -225,6 +225,7 @@ void CFileCache::Process()
       m_seekEnded.Set();
     }
 
+    int nLimiterIter = 0;
     while (m_writeRate && !g_advancedSettings.m_disableCacheRate)
     {
       if (m_writePos - m_readPos < m_writeRate)
@@ -233,23 +234,26 @@ void CFileCache::Process()
         break;
       }
 
-      if (limiter.Rate(m_writePos) < m_writeRate)
+      unsigned nRate = limiter.Rate(m_writePos);
+      if (nRate < m_writeRate)
         break;
 
+      if ( nLimiterIter > 0 && (nLimiterIter%100==0)) {
+         CLog::Log(LOGERROR, "l: iter=%d, m_writeRate=%d, m_writePos=%d, m_readPos=%d, nRate=%d\n", nLimiterIter, m_writeRate, m_writePos, m_readPos, nRate);	
+      }
       if (m_seekEvent.WaitMSec(100))
       {
         m_seekEvent.Set();
         break;
       }
+      nLimiterIter++;
     }
 
     unsigned before = XbmcThreads::SystemClockMillis();
+    CLog::Log(LOGERROR, "r\n");
     int iRead = m_source.Read(buffer.get(), m_chunkSize);
     unsigned after = XbmcThreads::SystemClockMillis();
-    if (after-before > 200)
-    {
-      CLog::Log(LOGINFO, "rtime=%d\n", after-before);
-    }
+    CLog::Log(LOGERROR, "rtime=%d\n", after-before);
     if (iRead == 0)
     {
       CLog::Log(LOGINFO, "CFileCache::Process - Hit eof.");
