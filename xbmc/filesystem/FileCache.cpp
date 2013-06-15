@@ -254,7 +254,7 @@ void CFileCache::Process()
     int iRead = m_source.Read(buffer.get(), m_chunkSize);
     unsigned after = XbmcThreads::SystemClockMillis();
     if (after-before>30) {
-      CLog::Log(LOGERROR, "rtime=%d,r=%d\n", after-before,iRead);
+      CLog::Log(LOGERROR, "rtime=%d,r=%d, m_writePos=%d\n", after-before,iRead, m_writePos);
     }
     if (iRead == 0)
     {
@@ -290,7 +290,7 @@ void CFileCache::Process()
       else if (iWrite == 0)
       {
 	if (!m_cacheFull) {
-	  CLog::Log(LOGERROR,"CFileCache::Process - cache full");
+	  CLog::Log(LOGERROR,"CFileCache::Process - cache full,m_writePos=%d",m_writePos);
 	}
         m_cacheFull = true;
         average.Pause();
@@ -298,8 +298,8 @@ void CFileCache::Process()
         average.Resume();
       }
       else {
-	if (!m_cacheFull) {
-	  CLog::Log(LOGERROR,"CFileCache::Process - cache not full");
+	if (m_cacheFull) {
+	  CLog::Log(LOGERROR,"CFileCache::Process - cache not full,m_writePos=%d",m_writePos);
 	}
         m_cacheFull = false;
       }
@@ -315,14 +315,14 @@ void CFileCache::Process()
     }
 
     m_writePos += iTotalWrite;
-    CLog::Log(LOGERROR, "m_writePos=%d\n", m_writePos);
+//    CLog::Log(LOGERROR, "m_writePos=%d\n", m_writePos);
 
     // under estimate write rate by a second, to
     // avoid uncertainty at start of caching
     m_writeRateActual = average.Rate(m_writePos, 1000);
   }
   
-  CLog::Log(LOGERROR, "Cache - exited while loop\n");
+  CLog::Log(LOGERROR, "Cache - exited while loop, m_writePos=%d\n", m_writePos);
 }
 
 void CFileCache::OnExit()
