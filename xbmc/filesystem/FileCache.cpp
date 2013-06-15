@@ -225,7 +225,7 @@ void CFileCache::Process()
       m_seekEnded.Set();
     }
 
-    while (m_writeRate && !g_advancedSettings.m_disableCacheRate)
+    while (m_writeRate)
     {
       if (m_writePos - m_readPos < m_writeRate)
       {
@@ -243,13 +243,7 @@ void CFileCache::Process()
       }
     }
 
-    unsigned before = XbmcThreads::SystemClockMillis();
     int iRead = m_source.Read(buffer.get(), m_chunkSize);
-    unsigned after = XbmcThreads::SystemClockMillis();
-    if (after-before > 200)
-    {
-      CLog::Log(LOGINFO, "rtime=%d\n", after-before);
-    }
     if (iRead == 0)
     {
       CLog::Log(LOGINFO, "CFileCache::Process - Hit eof.");
