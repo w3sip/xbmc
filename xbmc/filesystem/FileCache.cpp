@@ -253,10 +253,12 @@ void CFileCache::Process()
     CLog::Log(LOGERROR, "r\n");
     int iRead = m_source.Read(buffer.get(), m_chunkSize);
     unsigned after = XbmcThreads::SystemClockMillis();
-    CLog::Log(LOGERROR, "rtime=%d,r=%d\n", after-before,iRead);
+    if (after-before>30) {
+      CLog::Log(LOGERROR, "rtime=%d,r=%d\n", after-before,iRead);
+    }
     if (iRead == 0)
     {
-      CLog::Log(LOGINFO, "CFileCache::Process - Hit eof.");
+      CLog::Log(LOGERROR, "CFileCache::Process - Hit eof, m_writePos=%d", m_writePos);
       m_pCache->EndOfInput();
 
       // The thread event will now also cause the wait of an event to return a false.
@@ -273,9 +275,7 @@ void CFileCache::Process()
 
     int iTotalWrite=0;
     while (!m_bStop && (iTotalWrite < iRead))
-    {
-      CLog::Log(LOGERROR, "w1, iTotalWrite=%d\n", iTotalWrite);
-      
+    {     
       int iWrite = 0;
       iWrite = m_pCache->WriteToCache(buffer.get()+iTotalWrite, iRead - iTotalWrite);
 
@@ -289,16 +289,22 @@ void CFileCache::Process()
       }
       else if (iWrite == 0)
       {
+	if (!m_cacheFull) {
+	  CLog::Log(LOGERROR,"CFileCache::Process - cache full");
+	}
         m_cacheFull = true;
         average.Pause();
         m_pCache->m_space.WaitMSec(5);
         average.Resume();
       }
-      else
+      else {
+	if (!m_cacheFull) {
+	  CLog::Log(LOGERROR,"CFileCache::Process - cache not full");
+	}
         m_cacheFull = false;
+      }
 
       iTotalWrite += iWrite;
-      CLog::Log(LOGERROR, "w2, iTotalWrite=%d\n", iTotalWrite);
 
       // check if seek was asked. otherwise if cache is full we'll freeze.
       if (m_seekEvent.WaitMSec(0))
