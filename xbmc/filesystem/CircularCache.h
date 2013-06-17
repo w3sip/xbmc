@@ -69,9 +69,13 @@ public:
   {
     unsigned currentTime = XbmcThreads::SystemClockMillis();
     
-    CLog::Log(LOGERROR,"%s, obj=%p: maxTime=%"PRId64" avgTime=%"PRId64" minSize=%"PRId64" maxSize=%"PRId64" avgSize=%"PRId64 , 
+    CLog::Log(LOGERROR,"%s, obj=%p: currentTime=%d period=%d elapsed=%d events=%d maxTime=%"PRId64" avgTime=%"PRId64" minSize=%"PRId64" maxSize=%"PRId64" avgSize=%"PRId64 , 
 	      eventDescription,
 	      m_object,
+	      currentTime,
+	      m_reportPeriod,
+	      currentTime-m_lastReportTime,
+	      m_eventsInPeriod,
 	      m_longestIntervalInPeriod,
 	      (currentTime-m_lastReportTime)/m_eventsInPeriod,
 	      m_minSizeInPeriod,
