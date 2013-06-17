@@ -112,12 +112,12 @@ CFileCache::~CFileCache()
 
   if (m_bDeleteCache && m_pCache) {
     if (g_advancedSettings.m_cacheReportPeriod) {
-      CLog::Log(LOGERROR, "CFileCache - destroing cache - write pos %d, obj=%p", m_writePos, m_pCache);
+      CLog::Log(LOGERROR, "CFileCache - destroing cache - write pos %"PRId64", obj=%p", m_writePos, m_pCache);
     }
     delete m_pCache;
   } else if ( m_pCache ) {
     if (g_advancedSettings.m_cacheReportPeriod) {
-      CLog::Log(LOGERROR, "CFileCache - not destroing cache - write pos %d, obj=%p", m_writePos, m_pCache);
+      CLog::Log(LOGERROR, "CFileCache - not destroing cache - write pos %"PRId64", obj=%p", m_writePos, m_pCache);
     }
   }
 
@@ -259,31 +259,31 @@ void CFileCache::Process()
     after = XbmcThreads::SystemClockMillis();
     if ( g_advancedSettings.m_cacheReportPeriod && after - before > 1000 ) {
       // spent more than a second doing nothing
-      CLog::Log(LOGERROR, "CFileCache::Process - spent %d ms doing nothing, write pos %d, obj=%p", after-before, m_writePos, m_pCache);
+      CLog::Log(LOGERROR, "CFileCache::Process - spent %d ms doing nothing, write pos %"PRId64", obj=%p", after-before, m_writePos, m_pCache);
     }
 
     before = XbmcThreads::SystemClockMillis();
     if ( g_advancedSettings.m_cacheReportPeriod && before-lastReadTime > 1000 ) {
       // spent more than a second doing nothing
-      CLog::Log(LOGERROR, "CFileCache::Process - spent %d between reads, write pos %d, obj=%p", before-lastReadTime, m_writePos, m_pCache);
+      CLog::Log(LOGERROR, "CFileCache::Process - spent %d between reads, write pos %"PRId64", obj=%p", before-lastReadTime, m_writePos, m_pCache);
     }
     int iRead = m_source.Read(buffer.get(), m_chunkSize);
     after = XbmcThreads::SystemClockMillis();
     if ( g_advancedSettings.m_cacheReportPeriod && after - before > 1000 ) {
       // spent more than a second doing nothing
-      CLog::Log(LOGERROR, "CFileCache::Process - spent %d ms reading from source, write pos %d, obj=%p", after-before, m_writePos, m_pCache);
+      CLog::Log(LOGERROR, "CFileCache::Process - spent %d ms reading from source, write pos %"PRId64", obj=%p", after-before, m_writePos, m_pCache);
     }
     
     if (iRead == 0)
     {
-      CLog::Log(g_advancedSettings.m_cacheReportPeriod?LOGERROR:LOGINFO, "CFileCache::Process - Hit eof, write pos %d, obj=%p", m_writePos, m_pCache);
+      CLog::Log(g_advancedSettings.m_cacheReportPeriod?LOGERROR:LOGINFO, "CFileCache::Process - Hit eof, write pos %"PRId64", obj=%p", m_writePos, m_pCache);
       m_pCache->EndOfInput();
 
       // The thread event will now also cause the wait of an event to return a false.
       if (AbortableWait(m_seekEvent) == WAIT_SIGNALED)
       {
 	if (g_advancedSettings.m_cacheReportPeriod) {
-	  CLog::Log(LOGERROR, "CFileCache::Process - seek signalled at eof, write pos %d, obj=%p", m_writePos, m_pCache);
+	  CLog::Log(LOGERROR, "CFileCache::Process - seek signalled at eof, write pos %"PRId64", obj=%p", m_writePos, m_pCache);
 	}
         m_pCache->ClearEndOfInput();
         m_seekEvent.Set(); // hack so that later we realize seek is needed
@@ -293,7 +293,7 @@ void CFileCache::Process()
       }
     }
     else if (iRead < 0) {
-      CLog::Log(LOGERROR, "CFileCache::Process - error reading from source, write pos %d, obj=%p", m_writePos, m_pCache);
+      CLog::Log(LOGERROR, "CFileCache::Process - error reading from source, write pos %"PRId64", obj=%p", m_writePos, m_pCache);
       m_bStop = true;
     }
 
@@ -339,7 +339,7 @@ void CFileCache::Process()
   }
 
   if (g_advancedSettings.m_cacheReportPeriod) {
-    CLog::Log(LOGERROR, "CFileCache::Process - exiting, write pos %d, obj=%p", m_writePos, m_pCache);
+    CLog::Log(LOGERROR, "CFileCache::Process - exiting, write pos %"PRId64", obj=%p", m_writePos, m_pCache);
   }
 }
 

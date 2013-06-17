@@ -24,6 +24,7 @@
 #include "CacheStrategy.h"
 #include "threads/CriticalSection.h"
 #include "threads/Event.h"
+#include "utils/log.h"
 
 namespace XFILE {
 
@@ -31,13 +32,13 @@ class CacheStats
 {
 public:
   CacheStats( int reportPeriod, void* pObj )
-    : m_reportPeriod( reportPeriod )
-    , m_object ( pObj )
+    : m_object ( pObj )
+    , m_reportPeriod( reportPeriod )
   {
     Reset();
   }
   
-  void	Update( const char* eventDescription, int64_t currentCacheSize )
+  void	Update( const char* eventDescription, size_t currentCacheSize )
   {
     if ( m_reportPeriod == 0 ) 
       return;
@@ -95,7 +96,7 @@ private:
   int       m_eventsInPeriod;
   unsigned  m_lastReportTime;
   unsigned  m_lastEventTime;
-  int64_t   m_longestIntervalInPeriod;
+  unsigned  m_longestIntervalInPeriod;
   size_t    m_minSizeInPeriod;
   size_t    m_maxSizeInPeriod;
   size_t    m_totalSizeInPeriod;
