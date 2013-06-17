@@ -27,10 +27,84 @@
 
 namespace XFILE {
 
+class CacheStats
+{
+public:
+  CacheStats( int reportPeriod, void* pObj )
+    : m_reportPeriod( reportPeriod )
+    , m_object ( pObj )
+  {
+    Reset();
+  }
+  
+  void	Update( const char* eventDescription, int64_t currentCacheSize )
+  {
+    if ( m_reportPeriod == 0 ) 
+      return;
+    
+    unsigned currentTime = XbmcThreads::SystemClockMillis();
+    unsigned elapsedTime = currentTime - m_lastEventTime;
+    
+    m_lastEventTime = currentTime;
+    if ( m_eventsInPeriod == 0 ) {
+      m_longestIntervalInPeriod = elapsedTime;
+      m_minSizeInPeriod = currentCacheSize;
+      m_maxSizeInPeriod = currentCacheSize;
+    } else {
+      if ( elapsedTime > m_longestIntervalInPeriod ) m_longestIntervalInPeriod = elapsedTime;
+      if ( currentCacheSize < m_minSizeInPeriod ) m_minSizeInPeriod = currentCacheSize;
+      if ( currentCacheSize > m_maxSizeInPeriod ) m_maxSizeInPeriod = currentCacheSize;
+    }
+    m_totalSizeInPeriod += currentCacheSize;
+    m_eventsInPeriod++;
+    
+    if ( currentTime - m_lastReportTime > m_reportPeriod && m_reportPeriod > 0 ) {
+      Report(eventDescription);
+      Reset();
+    }
+  }
+  
+  void  Report( const char* eventDescription )
+  {
+    unsigned currentTime = XbmcThreads::SystemClockMillis();
+    
+    CLog::Log(LOGERROR,"%s, obj=%p: maxTime=%"PRId64" avgTime=%"PRId64" minSize=%"PRId64" maxSize=%"PRId64" avgSize=%"PRId64 , 
+	      eventDescription,
+	      m_object,
+	      m_longestIntervalInPeriod,
+	      (currentTime-m_lastReportTime)/m_eventsInPeriod,
+	      m_minSizeInPeriod,
+	      m_maxSizeInPeriod,
+	      m_totalSizeInPeriod/m_eventsInPeriod);
+    m_lastReportTime = currentTime;
+  }
+  
+  void  Reset()
+  {
+    m_eventsInPeriod = 0;
+    m_lastEventTime = m_lastReportTime =  XbmcThreads::SystemClockMillis();
+    m_longestIntervalInPeriod = 0;
+    m_minSizeInPeriod = 0;
+    m_maxSizeInPeriod = 0;
+    m_totalSizeInPeriod = 0;
+  }
+  
+private:
+  void*	    m_object;
+  int 	    m_reportPeriod;
+  int       m_eventsInPeriod;
+  unsigned  m_lastReportTime;
+  unsigned  m_lastEventTime;
+  int64_t   m_longestIntervalInPeriod;
+  size_t    m_minSizeInPeriod;
+  size_t    m_maxSizeInPeriod;
+  size_t    m_totalSizeInPeriod;
+};
+  
 class CCircularCache : public CCacheStrategy
 {
 public:
-    CCircularCache(size_t front, size_t back);
+    CCircularCache(size_t front, size_t back, int cacheReportPeriod=0);
     virtual ~CCircularCache();
 
     virtual int Open() ;
@@ -55,6 +129,9 @@ protected:
 #ifdef _WIN32
     HANDLE            m_handle;
 #endif
+    int               m_cacheReportPeriod;
+    CacheStats	      m_readStats;
+    CacheStats	      m_writeStats;
 };
 
 } // namespace XFILE

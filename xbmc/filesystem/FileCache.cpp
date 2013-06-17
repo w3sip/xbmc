@@ -89,7 +89,8 @@ CFileCache::CFileCache() : CThread("CFileCache")
      m_pCache = new CSimpleFileCache();
    else
      m_pCache = new CCircularCache(g_advancedSettings.m_cacheMemBufferSize
-                                 , std::max<unsigned int>( g_advancedSettings.m_cacheMemBufferSize / 4, 1024 * 1024));
+                                 , std::max<unsigned int>( g_advancedSettings.m_cacheMemBufferSize / 4, 1024 * 1024)
+				  ,  g_advancedSettings.m_cacheReportPeriod);
    m_seekPossible = 0;
    m_cacheFull = false;
 }
@@ -109,8 +110,16 @@ CFileCache::~CFileCache()
 {
   Close();
 
-  if (m_bDeleteCache && m_pCache)
+  if (m_bDeleteCache && m_pCache) {
+    if (g_advancedSettings.m_cacheReportPeriod) {
+      CLog::Log(LOGERROR, "CFileCache - destroing cache - write pos %d, obj=%p", m_writePos, m_pCache);
+    }
     delete m_pCache;
+  } else if ( m_pCache ) {
+    if (g_advancedSettings.m_cacheReportPeriod) {
+      CLog::Log(LOGERROR, "CFileCache - not destroing cache - write pos %d, obj=%p", m_writePos, m_pCache);
+    }
+  }
 
   m_pCache = NULL;
 }
@@ -198,10 +207,15 @@ void CFileCache::Process()
 
   CWriteRate limiter;
   CWriteRate average;
+  unsigned before;
+  unsigned after;
+  unsigned lastReadTime= XbmcThreads::SystemClockMillis();
+  
 
   while (!m_bStop)
   {
     // check for seek events
+    before = XbmcThreads::SystemClockMillis();
     if (m_seekEvent.WaitMSec(0))
     {
       m_seekEvent.Reset();
@@ -242,24 +256,46 @@ void CFileCache::Process()
         break;
       }
     }
+    after = XbmcThreads::SystemClockMillis();
+    if ( g_advancedSettings.m_cacheReportPeriod && after - before > 1000 ) {
+      // spent more than a second doing nothing
+      CLog::Log(LOGERROR, "CFileCache::Process - spent %d ms doing nothing, write pos %d, obj=%p", after-before, m_writePos, m_pCache);
+    }
 
+    before = XbmcThreads::SystemClockMillis();
+    if ( g_advancedSettings.m_cacheReportPeriod && before-lastReadTime > 1000 ) {
+      // spent more than a second doing nothing
+      CLog::Log(LOGERROR, "CFileCache::Process - spent %d between reads, write pos %d, obj=%p", before-lastReadTime, m_writePos, m_pCache);
+    }
     int iRead = m_source.Read(buffer.get(), m_chunkSize);
+    after = XbmcThreads::SystemClockMillis();
+    if ( g_advancedSettings.m_cacheReportPeriod && after - before > 1000 ) {
+      // spent more than a second doing nothing
+      CLog::Log(LOGERROR, "CFileCache::Process - spent %d ms reading from source, write pos %d, obj=%p", after-before, m_writePos, m_pCache);
+    }
+    
     if (iRead == 0)
     {
-      CLog::Log(LOGINFO, "CFileCache::Process - Hit eof.");
+      CLog::Log(g_advancedSettings.m_cacheReportPeriod?LOGERROR:LOGINFO, "CFileCache::Process - Hit eof, write pos %d, obj=%p", m_writePos, m_pCache);
       m_pCache->EndOfInput();
 
       // The thread event will now also cause the wait of an event to return a false.
       if (AbortableWait(m_seekEvent) == WAIT_SIGNALED)
       {
+	if (g_advancedSettings.m_cacheReportPeriod) {
+	  CLog::Log(LOGERROR, "CFileCache::Process - seek signalled at eof, write pos %d, obj=%p", m_writePos, m_pCache);
+	}
         m_pCache->ClearEndOfInput();
         m_seekEvent.Set(); // hack so that later we realize seek is needed
       }
-      else
+      else {
         break;
+      }
     }
-    else if (iRead < 0)
+    else if (iRead < 0) {
+      CLog::Log(LOGERROR, "CFileCache::Process - error reading from source, write pos %d, obj=%p", m_writePos, m_pCache);
       m_bStop = true;
+    }
 
     int iTotalWrite=0;
     while (!m_bStop && (iTotalWrite < iRead))
@@ -300,6 +336,10 @@ void CFileCache::Process()
     // under estimate write rate by a second, to
     // avoid uncertainty at start of caching
     m_writeRateActual = average.Rate(m_writePos, 1000);
+  }
+
+  if (g_advancedSettings.m_cacheReportPeriod) {
+    CLog::Log(LOGERROR, "CFileCache::Process - exiting, write pos %d, obj=%p", m_writePos, m_pCache);
   }
 }
 

@@ -27,7 +27,7 @@
 
 using namespace XFILE;
 
-CCircularCache::CCircularCache(size_t front, size_t back)
+CCircularCache::CCircularCache(size_t front, size_t back, int cacheReportPeriod)
  : CCacheStrategy()
  , m_beg(0)
  , m_end(0)
@@ -38,6 +38,9 @@ CCircularCache::CCircularCache(size_t front, size_t back)
 #ifdef _WIN32
  , m_handle(INVALID_HANDLE_VALUE)
 #endif
+ , m_cacheReportPeriod( cacheReportPeriod )
+ , m_readStats ( cacheReportPeriod, this )
+ , m_writeStats ( cacheReportPeriod, this )
 {
 }
 
@@ -115,7 +118,7 @@ int CCircularCache::WriteToCache(const char *buf, size_t len)
   if(len > wrap)
     len = wrap;
 
-  CLog::Log(LOGERROR,"l=%"PRId64", f=%"PRId64"\n", len, front);
+  m_writeStats.Update("Cache write event", (size_t)(m_end - m_cur));
   if(len == 0)
     return 0;
 
@@ -159,6 +162,7 @@ int CCircularCache::ReadFromCache(char *buf, size_t len)
   if(len == 0)
     return 0;
 
+  m_readStats.Update("Cache read event",  (size_t)(m_end - m_cur));
   memcpy(buf, m_buf + pos, len);
   m_cur += len;
 
