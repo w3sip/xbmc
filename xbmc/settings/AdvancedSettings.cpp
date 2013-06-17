@@ -695,7 +695,7 @@ void CAdvancedSettings::ParseSettingsFile(const CStdString &file)
     XMLUtils::GetBoolean(pElement,"disableipv6", m_curlDisableIPV6);
     XMLUtils::GetBoolean(pElement, "alwaysforcebuffer", m_alwaysForceBuffer);
     XMLUtils::GetUInt(pElement, "cachemembuffersize", m_cacheMemBufferSize);
-    XMLUtils::GetBoolean(pElement, "cachereportperiod", m_cacheReportPeriod);
+    XMLUtils::GetUInt(pElement, "cachereportperiod", m_cacheReportPeriod);
   }
 
   pElement = pRootElement->FirstChildElement("jsonrpc");
