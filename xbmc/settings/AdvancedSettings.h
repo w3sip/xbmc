@@ -354,7 +354,7 @@ class CAdvancedSettings
 
     unsigned int m_cacheMemBufferSize;
     bool m_alwaysForceBuffer;
-    bool m_cacheReportPeriod;
+    unsigned int m_cacheReportPeriod;
 
     bool m_jsonOutputCompact;
     unsigned int m_jsonTcpPort;
