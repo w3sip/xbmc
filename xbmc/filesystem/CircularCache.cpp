@@ -183,7 +183,7 @@ int64_t CCircularCache::WaitForData(unsigned int minumum, unsigned int millis)
     minumum = m_size - m_size_back;
   
   if ( m_cacheReportPeriod > 0 && minumum > 0 ) {
-    CLog::Log(LOGERROR,"%s - going to wait minimum=%d m_end=%"PRId64" m_cur=%"PRId64" m_size=%"PRId64" m_size_back=%"PRId64, __FUNCTION__, minimum, m_end, m_cur, m_size, m_size_back);
+    CLog::Log(LOGERROR,"%s - going to wait minimum=%d m_end=%"PRId64" m_cur=%"PRId64" m_size=%"PRId64" m_size_back=%"PRId64, __FUNCTION__, minumum, m_end, m_cur, m_size, m_size_back);
   }
 
   XbmcThreads::EndTime endtime(millis);
