@@ -210,6 +210,7 @@ void CFileCache::Process()
   unsigned before;
   unsigned after;
   unsigned lastReadTime= XbmcThreads::SystemClockMillis();
+  bool     bCacheFullEventSeen = false;
   
 
   while (!m_bStop)
@@ -263,10 +264,12 @@ void CFileCache::Process()
     }
 
     before = XbmcThreads::SystemClockMillis();
-    if ( g_advancedSettings.m_cacheReportPeriod && before-lastReadTime > 1000 ) {
+    if ( g_advancedSettings.m_cacheReportPeriod && before-lastReadTime > 1000 && !bCacheFullEventSeen ) {
       // spent more than a second doing nothing
       CLog::Log(LOGERROR, "CFileCache::Process - spent %d between reads, write pos %"PRId64", obj=%p", before-lastReadTime, m_writePos, m_pCache);
     }
+    bCacheFullEventSeen = false;
+    
     int iRead = m_source.Read(buffer.get(), m_chunkSize);
     lastReadTime = after = XbmcThreads::SystemClockMillis();
     if ( g_advancedSettings.m_cacheReportPeriod && after - before > 1000 ) {
@@ -314,6 +317,7 @@ void CFileCache::Process()
       else if (iWrite == 0)
       {
         m_cacheFull = true;
+	bCacheFullEventSeen = true;
         average.Pause();
         m_pCache->m_space.WaitMSec(5);
         average.Resume();
