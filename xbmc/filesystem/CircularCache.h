@@ -38,13 +38,21 @@ public:
     Reset();
   }
   
+  unsigned int GetElapsedTime(unsigned int start, unsigned int end)
+  {
+    if ( end>=start ) {
+      return end-start;
+    }
+    return end+(unsigned int)0xFFFF-start;
+  }
+  
   void	Update( const char* eventDescription, size_t currentCacheSize )
   {
     if ( m_reportPeriod == 0 ) 
       return;
     
-    unsigned currentTime = XbmcThreads::SystemClockMillis();
-    unsigned elapsedTime = currentTime - m_lastEventTime;
+    unsigned int currentTime = XbmcThreads::SystemClockMillis();
+    unsigned int elapsedTime = GetElapsedTime(currentTime, m_lastEventTime);
     
     m_lastEventTime = currentTime;
     if ( m_eventsInPeriod == 0 ) {
@@ -60,24 +68,26 @@ public:
     m_eventsInPeriod++;
     
     if ( currentTime - m_lastReportTime > m_reportPeriod && m_reportPeriod > 0 ) {
-      Report(eventDescription);
+      Report(eventDescription, currentCacheSize);
       Reset();
     }
   }
   
-  void  Report( const char* eventDescription )
+  void  Report( const char* eventDescription, size_t currentCacheSize )
   {
     unsigned currentTime = XbmcThreads::SystemClockMillis();
+    unsigned int elapsedTime = GetElapsedTime(currentTime, m_lastReportTime);
     
-    CLog::Log(LOGERROR,"%s, obj=%p: currentTime=%d period=%d elapsed=%d events=%d maxTime=%"PRId64" avgTime=%"PRId64" minSize=%"PRId64" maxSize=%"PRId64" avgSize=%"PRId64 , 
+    CLog::Log(LOGERROR,"%s, obj=%p: currentTime=%d period=%d elapsed=%d events=%d maxTime=%d avgTime=%d curSize=%"PRId64" minSize=%"PRId64" maxSize=%"PRId64" avgSize=%"PRId64 , 
 	      eventDescription,
 	      m_object,
 	      currentTime,
 	      m_reportPeriod,
-	      currentTime-m_lastReportTime,
+	      elapsedTime,
 	      m_eventsInPeriod,
 	      m_longestIntervalInPeriod,
-	      (currentTime-m_lastReportTime)/m_eventsInPeriod,
+	      elapsedTime/m_eventsInPeriod,
+	      currentCacheSize,
 	      m_minSizeInPeriod,
 	      m_maxSizeInPeriod,
 	      m_totalSizeInPeriod/m_eventsInPeriod);
@@ -96,11 +106,11 @@ public:
   
 private:
   void*	    m_object;
-  int 	    m_reportPeriod;
-  int       m_eventsInPeriod;
-  unsigned  m_lastReportTime;
-  unsigned  m_lastEventTime;
-  unsigned  m_longestIntervalInPeriod;
+  unsigned int m_reportPeriod;
+  unsigned int m_eventsInPeriod;
+  unsigned int m_lastReportTime;
+  unsigned int m_lastEventTime;
+  unsigned int m_longestIntervalInPeriod;
   size_t    m_minSizeInPeriod;
   size_t    m_maxSizeInPeriod;
   size_t    m_totalSizeInPeriod;
