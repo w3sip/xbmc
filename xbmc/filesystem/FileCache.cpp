@@ -112,12 +112,12 @@ CFileCache::~CFileCache()
 
   if (m_bDeleteCache && m_pCache) {
     if (g_advancedSettings.m_cacheReportPeriod) {
-      CLog::Log(LOGERROR, "CFileCache - destroing cache - write pos %"PRId64", obj=%p", m_writePos, m_pCache);
+      CLog::Log(LOGERROR, "CFileCache - destroying cache - write pos %"PRId64", obj=%p", m_writePos, m_pCache);
     }
     delete m_pCache;
   } else if ( m_pCache ) {
     if (g_advancedSettings.m_cacheReportPeriod) {
-      CLog::Log(LOGERROR, "CFileCache - not destroing cache - write pos %"PRId64", obj=%p", m_writePos, m_pCache);
+      CLog::Log(LOGERROR, "CFileCache - not destroying cache - write pos %"PRId64", obj=%p", m_writePos, m_pCache);
     }
   }
 
@@ -240,7 +240,7 @@ void CFileCache::Process()
       m_seekEnded.Set();
     }
 
-    while (m_writeRate)
+    while (m_writeRate && g_advancedSettings.m_limitCacheRate)
     {
       if (m_writePos - m_readPos < m_writeRate)
       {
@@ -257,6 +257,7 @@ void CFileCache::Process()
         break;
       }
     }
+    
     after = XbmcThreads::SystemClockMillis();
     if ( g_advancedSettings.m_cacheReportPeriod && after - before > 1000 ) {
       // spent more than a second doing nothing
@@ -511,7 +512,7 @@ int CFileCache::IoControl(EIoControl request, void* param)
     SCacheStatus* status = (SCacheStatus*)param;
     status->forward = m_pCache->WaitForData(0, 0);
     status->maxrate = m_writeRate;
-    status->currate = m_writeRateActual;
+    status->currate = m_writeRate<m_writeRateActual?m_writeRate:m_writeRateActual;
     status->full    = m_cacheFull;
     return 0;
   }

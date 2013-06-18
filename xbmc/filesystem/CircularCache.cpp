@@ -181,6 +181,10 @@ int64_t CCircularCache::WaitForData(unsigned int minumum, unsigned int millis)
 
   if(minumum > m_size - m_size_back)
     minumum = m_size - m_size_back;
+  
+  if ( m_cacheReportPeriod > 0 && minumum > 0 ) {
+    CLog::Log(LOGERROR,"%s - going to wait minimum=%d m_end=%"PRId64" m_cur=%"PRId64" m_size=%"PRId64" m_size_back=%"PRId64, __FUNCTION__, minimum, m_end, m_cur, m_size, m_size_back);
+  }
 
   XbmcThreads::EndTime endtime(millis);
   while (!IsEndOfInput() && avail < minumum && !endtime.IsTimePast() )
@@ -191,6 +195,9 @@ int64_t CCircularCache::WaitForData(unsigned int minumum, unsigned int millis)
     avail = m_end - m_cur;
   }
 
+  if ( m_cacheReportPeriod > 0 && minumum > 0 ) {
+    CLog::Log(LOGERROR,"%s - got avail=%"PRId64" m_end=%"PRId64" m_cur=%"PRId64" m_size=%"PRId64" m_size_back=%"PRId64, __FUNCTION__, avail, m_end, m_cur, m_size, m_size_back);
+  }
   return avail;
 }
 

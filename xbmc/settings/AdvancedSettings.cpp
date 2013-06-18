@@ -305,6 +305,7 @@ void CAdvancedSettings::Initialize()
   m_alwaysForceBuffer = false;
   m_addonPackageFolderSize = 200;
   m_cacheReportPeriod = 0;
+  m_limitCacheRate = true;
 
   m_jsonOutputCompact = true;
   m_jsonTcpPort = 9090;
@@ -696,6 +697,7 @@ void CAdvancedSettings::ParseSettingsFile(const CStdString &file)
     XMLUtils::GetBoolean(pElement, "alwaysforcebuffer", m_alwaysForceBuffer);
     XMLUtils::GetUInt(pElement, "cachemembuffersize", m_cacheMemBufferSize);
     XMLUtils::GetUInt(pElement, "cachereportperiod", m_cacheReportPeriod);
+    XMLUtils::GetBoolean(pElement, "limitcacherate", m_limitCacheRate);
   }
 
   pElement = pRootElement->FirstChildElement("jsonrpc");
