@@ -52,7 +52,7 @@ public:
       return;
     
     unsigned int currentTime = XbmcThreads::SystemClockMillis();
-    unsigned int elapsedTime = GetElapsedTime(currentTime, m_lastEventTime);
+    unsigned int elapsedTime = GetElapsedTime(m_lastEventTime,currentTime);
     
     m_lastEventTime = currentTime;
     if ( m_eventsInPeriod == 0 ) {
@@ -76,13 +76,11 @@ public:
   void  Report( const char* eventDescription, size_t currentCacheSize )
   {
     unsigned currentTime = XbmcThreads::SystemClockMillis();
-    unsigned int elapsedTime = GetElapsedTime(currentTime, m_lastReportTime);
+    unsigned int elapsedTime = GetElapsedTime(m_lastReportTime,currentTime);
     
-    CLog::Log(LOGERROR,"%s, obj=%p: currentTime=%d period=%d elapsed=%d events=%d maxTime=%d avgTime=%d curSize=%"PRId64" minSize=%"PRId64" maxSize=%"PRId64" avgSize=%"PRId64 , 
+    CLog::Log(LOGERROR,"%s, obj=%p: elapsed=%d events=%d maxTime=%d avgTime=%d curSize=%"PRId64" minSize=%"PRId64" maxSize=%"PRId64" avgSize=%"PRId64 , 
 	      eventDescription,
 	      m_object,
-	      currentTime,
-	      m_reportPeriod,
 	      elapsedTime,
 	      m_eventsInPeriod,
 	      m_longestIntervalInPeriod,
