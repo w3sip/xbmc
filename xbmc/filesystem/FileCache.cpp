@@ -268,7 +268,7 @@ void CFileCache::Process()
       CLog::Log(LOGERROR, "CFileCache::Process - spent %d between reads, write pos %"PRId64", obj=%p", before-lastReadTime, m_writePos, m_pCache);
     }
     int iRead = m_source.Read(buffer.get(), m_chunkSize);
-    after = XbmcThreads::SystemClockMillis();
+    lastReadTime = after = XbmcThreads::SystemClockMillis();
     if ( g_advancedSettings.m_cacheReportPeriod && after - before > 1000 ) {
       // spent more than a second doing nothing
       CLog::Log(LOGERROR, "CFileCache::Process - spent %d ms reading from source, write pos %"PRId64", obj=%p", after-before, m_writePos, m_pCache);
