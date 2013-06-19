@@ -509,6 +509,10 @@ int CFileCache::IoControl(EIoControl request, void* param)
 {
   if (request == IOCTRL_CACHE_STATUS)
   {
+    if (!g_advancedSettings.m_limitCacheRate) {
+      // m_writeRateActual isn't calculated ... let player think there's no cache
+      return -1;
+    }
     SCacheStatus* status = (SCacheStatus*)param;
     status->forward = m_pCache->WaitForData(0, 0);
     status->maxrate = m_writeRate;
