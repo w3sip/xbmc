@@ -144,7 +144,7 @@ bool CFileCache::Open(const CURL& url)
 
   CSingleLock lock(m_sync);
 
-  CLog::Log(LOGDEBUG,"CFileCache::Open - opening <%s> using cache", url.GetFileName().c_str());
+  CLog::Log(LOGERROR,"CFileCache::Open - opening <%s> using cache", url.GetFileName().c_str());
 
   if (!m_pCache)
   {
