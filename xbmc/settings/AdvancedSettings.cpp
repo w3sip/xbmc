@@ -374,6 +374,7 @@ void CAdvancedSettings::Initialize()
   // as multiply of the default data read rate
   m_readBufferFactor = 1.0f;
   m_addonPackageFolderSize = 200;
+  m_limitCacheRate = true;
 
   m_jsonOutputCompact = true;
   m_jsonTcpPort = 9090;
@@ -804,6 +805,7 @@ void CAdvancedSettings::ParseSettingsFile(const CStdString &file)
     XMLUtils::GetUInt(pElement, "cachemembuffersize", m_cacheMemBufferSize);
     XMLUtils::GetUInt(pElement, "buffermode", m_networkBufferMode, 0, 3);
     XMLUtils::GetFloat(pElement, "readbufferfactor", m_readBufferFactor);
+    XMLUtils::GetBoolean(pElement, "limitcacherate", m_limitCacheRate);      
   }
 
   pElement = pRootElement->FirstChildElement("jsonrpc");

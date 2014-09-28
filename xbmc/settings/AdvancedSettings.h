@@ -377,6 +377,7 @@ class CAdvancedSettings : public ISettingCallback, public ISettingsHandler
     unsigned int m_addonPackageFolderSize;
 
     unsigned int m_cacheMemBufferSize;
+    bool m_limitCacheRate;    
     unsigned int m_networkBufferMode;
     float m_readBufferFactor;
 
